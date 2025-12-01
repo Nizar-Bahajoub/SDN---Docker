@@ -1,0 +1,60 @@
+services:
+
+  pox:
+    build: ./pox
+    container_name: pox-controller
+    hostname: pox
+    networks:
+      management:
+        ipv4_address: 172.20.100.10
+      data:
+        ipv4_address: 172.20.200.10
+    ports:
+      - "6633:6633"
+    environment:
+      - DETECTOR_URL=http://172.20.100.20:8000/predict
+      - DETECTOR_TIMEOUT=2.0
+    command: ["python3","pox.py","log.level","--DEBUG","openflow.of_01","--port=6633","--address=0.0.0.0","ext.defense_with_ml"]
+
+  mininet:
+    build: ./mininet
+    container_name: mininet-sim
+    hostname: mininet
+    privileged: true
+    cap_add:
+      - ALL
+    networks:
+      data:
+        ipv4_address: 172.20.200.20
+    volumes:
+      - ./mininet/topologies:/topologies
+    depends_on:
+      - pox
+    command: tail -f /dev/null
+    stdin_open: true
+    tty: true
+
+  detector:
+    build: ./detector
+    container_name: detector
+    hostname: detector
+    networks:
+      management:
+        ipv4_address: 172.20.100.20
+    ports:
+      - "8000:8000"
+    volumes:
+      - ./detector/models:/models
+    command: ["python3","/detector/detector_service.py"]
+
+networks:
+  management:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.100.0/24
+  data:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.200.0/24
