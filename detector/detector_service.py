@@ -1,5 +1,5 @@
 # detector/detector_service.py
-from fastapi import FastAPI
+from fastapi import FastAPI, Header, HTTPException
 from pydantic import BaseModel
 import uvicorn, os, joblib, numpy as np
 
@@ -22,7 +22,12 @@ class Features(BaseModel):
     packet_in_rate: int
 
 @app.post("/predict")
-def predict(f: Features):
+def predict(f: Features, authorization: str = Header(None)):
+    # simple token validation
+    expected = os.getenv('DETECTOR_SECRET','')
+    if expected:
+        if authorization is None or authorization != f"Bearer {expected}":
+            raise HTTPException(status_code=401, detail="Unauthorized")
     vec = np.array([[f.pkt_count, f.byte_count, f.duration, f.arp_count, f.packet_in_rate]])
     if model is not None:
         score = float(model.predict_proba(vec)[0][1])

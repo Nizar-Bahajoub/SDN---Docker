@@ -14,6 +14,15 @@ services:
     environment:
       - DETECTOR_URL=http://172.20.100.20:8000/predict
       - DETECTOR_TIMEOUT=2.0
+      - DETECTOR_SECRET=supersecret123
+      - LOCAL_MODEL_PATH=/pox/models/model.pkl
+      - LOCAL_MODEL_THRESHOLD=0.5
+      - ROUTER_MAC=00:00:00:00:00:01
+      - PORT_LOCKING=true
+      - MAC_MOVE_BLOCK=true
+    volumes:
+      - ./pox/controllers:/pox/pox/ext:ro
+      - ./pox/models:/pox/models:ro
     command: ["python3","pox.py","log.level","--DEBUG","openflow.of_01","--port=6633","--address=0.0.0.0","ext.defense_with_ml"]
 
   mininet:
@@ -43,6 +52,9 @@ services:
         ipv4_address: 172.20.100.20
     ports:
       - "8000:8000"
+    environment:
+      - MODEL_PATH=/models/model.pkl
+      - DETECTOR_SECRET=supersecret123
     volumes:
       - ./detector/models:/models
     command: ["python3","/detector/detector_service.py"]
