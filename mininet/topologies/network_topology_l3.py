@@ -43,7 +43,6 @@ class L3Topo(Topo):
         self.addLink(h5, s2)
         self.addLink(h6, s2)
 
-        self.addLink(s1, s2)   # inter-switch link (core)
         self.addLink(r1, s1)   # r1-eth0 connected to s1
         self.addLink(r1, s2)   # r1-eth1 connected to s2
 
